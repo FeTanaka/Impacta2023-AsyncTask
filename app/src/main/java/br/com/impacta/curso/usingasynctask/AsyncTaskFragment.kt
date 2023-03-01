@@ -1,59 +1,61 @@
 package br.com.impacta.curso.usingasynctask
 
+import android.os.AsyncTask
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import br.com.impacta.curso.usingasynctask.databinding.FragmentAsyncTaskBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [AsyncTaskFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class AsyncTaskFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentAsyncTaskBinding? = null
+    private val binding get()= _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_async_task, container, false)
+        _binding = FragmentAsyncTaskBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AsyncTaskFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AsyncTaskFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.button.setOnClickListener {
+            val tarefa = TarefaOutraThread()
+            tarefa.execute()
+        }
+    }
+
+    inner class TarefaOutraThread: AsyncTask<Void, Int, String>() {
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+            binding.textView.text = "Antes da execução"
+            binding.progressBar.max = 5
+            binding.progressBar.progress = 0
+        }
+
+        override fun doInBackground(vararg p0: Void?): String {
+            for (i in 1..5) {
+                publishProgress(i)
+                Thread.sleep(500)
             }
+            return "Terminou a execução"
+        }
+
+        override fun onPostExecute(result: String?) {
+            super.onPostExecute(result)
+            binding.textView.text = result
+        }
+
+        override fun onProgressUpdate(vararg values: Int?) {
+            super.onProgressUpdate(*values)
+            binding.progressBar.progress = values[0]!!
+        }
     }
 }
